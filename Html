@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shimmer Locator — Terraria</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04050f;
+    --surface: #0a0c1e;
+    --shimmer1: #b06efc;
+    --shimmer2: #58d8ff;
+    --shimmer3: #f77fff;
+    --gold: #ffd966;
+    --text: #dce8ff;
+    --muted: #7888aa;
+    --border: rgba(176,110,252,0.25);
+    --glow: rgba(176,110,252,0.55);
+    --radius: 14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 80%, rgba(88,216,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(247,127,255,0.09) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 70% at 50% 50%, rgba(176,110,252,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 15% 25%, rgba(176,110,252,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 72% 12%, rgba(88,216,255,0.7) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 45% 70%, rgba(247,127,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 55%, rgba(176,110,252,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 88%, rgba(88,216,255,0.4) 0%, transparent 100%),
+      radial-gradient(2px 2px at 60% 40%, rgba(247,127,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 50%, white 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, white 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 60%, white 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 90%, white 0%, transparent 100%);
+    animation: twinkle 6s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.6; }
+    to   { opacity: 1; }
+  }
+
+  /* Float particles */
+  .particles {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  /* Layout */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .logo-shimmer {
+    display: inline-block;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--shimmer2) 0%, var(--shimmer1) 40%, var(--shimmer3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 28px rgba(176,110,252,0.6));
+    animation: pulse-glow 3s ease-in-out infinite alternate;
+    letter-spacing: 2px;
+  }
+  @keyframes pulse-glow {
+    from { filter: drop-shadow(0 0 18px rgba(176,110,252,0.5)); }
+    to   { filter: drop-shadow(0 0 38px rgba(247,127,255,0.8)); }
+  }
+
+  .subtitle {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  .divider {
+    width: 120px; height: 2px;
+    margin: 18px auto 0;
+    background: linear-gradient(90deg, transparent, var(--shimmer1), var(--shimmer2), transparent);
+    border-radius: 2px;
+  }
+
+  /* Card */
+  .card {
+    background: linear-gradient(145deg, rgba(10,12,30,0.95), rgba(16,10,32,0.9));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 40px;
+    margin-bottom: 28px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: rgba(176,110,252,0.5); }
+
+  .card-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    color: var(--shimmer2);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(88,216,255,0.4), transparent);
+  }
+
+  /* Inputs */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 520px) {
+    .field-group { grid-template-columns: 1fr; }
+    .card { padding: 24px 20px; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  select, input[type="number"] {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(176,110,252,0.3);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    padding: 12px 16px;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    outline: none;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237888aa' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  select option { background: #0d0f22; }
+
+  select:focus, input[type="number"]:focus {
+    border-color: var(--shimmer1);
+    box-shadow: 0 0 0 3px rgba(176,110,252,0.15), 0 0 18px rgba(176,110,252,0.1);
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* World size */
+  .size-group {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .size-btn {
+    flex: 1; min-width: 90px;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(176,110,252,0.25);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .size-btn:hover {
+    border-color: var(--shimmer1);
+    color: var(--text);
+    background: rgba(176,110,252,0.08);
+  }
+  .size-btn.active {
+    background: rgba(176,110,252,0.18);
+    border-color: var(--shimmer1);
+    color: var(--shimmer1);
+    box-shadow: 0 0 14px rgba(176,110,252,0.2);
+  }
+
+  /* Button */
+  .btn-calc {
+    width: 100%;
+    margin-top: 24px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, rgba(176,110,252,0.9), rgba(88,216,255,0.8));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(176,110,252,0.35);
+  }
+  .btn-calc::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(176,110,252,0.55); }
+  .btn-calc:hover::before { opacity: 1; }
+  .btn-calc:active { transform: translateY(0); }
+
+  /* Result */
+  .result-card {
+    display: none;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .result-card.show { display: block; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .result-coord {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .coord-label {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .coord-value {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: 'Cinzel Decorative', serif;
+    background: linear-gradient(135deg, var(--shimmer1), var(--shimmer2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(176,110,252,0.5));
+    line-height: 1;
+  }
+
+  .result-arrow {
+    font-size: 2rem;
+    color: var(--muted);
+    align-self: center;
+  }
+
+  .result-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+
+  .meta-chip {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(176,110,252,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-chip .label {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-chip .value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gold);
+  }
+
+  /* Progress bar representing position */
+  .position-bar {
+    margin-top: 20px;
+    position: relative;
+  }
+  .bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    overflow: visible;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--shimmer1), var(--shimmer2));
+    box-shadow: 0 0 12px rgba(88,216,255,0.5);
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+  .bar-marker {
+    position: absolute;
+    right: -6px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 0 10px var(--shimmer1), 0 0 20px var(--shimmer2);
+    animation: marker-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes marker-pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--shimmer1), 0 0 16px var(--shimmer2); }
+    50%       { box-shadow: 0 0 14px var(--shimmer1), 0 0 28px var(--shimmer3); }
+  }
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Info accordion */
+  .info-toggle {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    margin-top: 20px;
+    transition: color 0.2s;
+  }
+  .info-toggle:hover { color: var(--shimmer1); }
+  .info-toggle .arrow { transition: transform 0.3s; display: inline-block; }
+  .info-toggle.open .arrow { transform: rotate(180deg); }
+
+  .info-box {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .info-box.open { max-height: 300px; }
+  .info-inner {
+    margin-top: 14px;
+    padding: 18px;
+    background: rgba(88,216,255,0.04);
+    border: 1px solid rgba(88,216,255,0.15);
+    border-radius: 8px;
+    font-size: 0.87rem;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+  .info-inner strong { color: var(--shimmer2); }
+
+  /* NPC table modal */
+  .npc-btn {
+    background: none;
+    border: 1px solid rgba(176,110,252,0.3);
+    border-radius: 8px;
+    color: var(--shimmer1);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.82rem;
+    padding: 8px 16px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .npc-btn:hover { background: rgba(176,110,252,0.1); border-color: var(--shimmer1); }
+
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn 0.25s; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .modal {
+    background: #0a0c1e;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    background: linear-gradient(90deg, var(--shimmer1), var(--shimmer2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); font-size: 1.4rem;
+    cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--shimmer3); }
+
+  .npc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .npc-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(176,110,252,0.15);
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+  }
+  .npc-name { font-weight: 600; color: var(--text); }
+  .npc-val { color: var(--shimmer2); font-size: 0.78rem; font-family: monospace; }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    color: #ff7090;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(255,80,100,0.07);
+    border: 1px solid rgba(255,80,100,0.2);
+    border-radius: 6px;
+  }
+  .error-msg.show { display: block; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+
+  <header>
+    <h1 class="logo-shimmer">✦ SHIMMER LOCATOR ✦</h1>
+    <p class="subtitle">Terraria · Encontrador de Aether</p>
+    <div class="divider"></div>
+  </header>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title">⬡ Configuração do Mundo</div>
+
+    <div class="field">
+      <label>Tamanho do Mundo + Lado da Selva</label>
+      <div class="size-group" style="flex-wrap:wrap;">
+        <button class="size-btn" onclick="selectConfig(this, 4200, 'left')">🌿 Pequeno<br><small>Selva Esquerda</small></button>
+        <button class="size-btn" onclick="selectConfig(this, 4200, 'right')">🌿 Pequeno<br><small>Selva Direita</small></button>
+        <button class="size-btn" onclick="selectConfig(this, 6400, 'left')">🌿 Médio<br><small>Selva Esquerda</small></button>
+        <button class="size-btn" onclick="selectConfig(this, 6400, 'right')">🌿 Médio<br><small>Selva Direita</small></button>
+        <button class="size-btn" onclick="selectConfig(this, 8400, 'left')">🌿 Grande<br><small>Selva Esquerda</small></button>
+        <button class="size-btn" onclick="selectConfig(this, 8400, 'right')">🌿 Grande<br><small>Selva Direita</small></button>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <div class="field">
+        <label>Nome do Guia (Guide)</label>
+        <select id="npcSelect">
+          <option value="">— Selecione o NPC —</option>
+          <option value="0.5278">Andrew — 0,5278</option>
+          <option value="0.3056">Asher — 0,3056</option>
+          <option value="0.3333">Bradley — 0,3333</option>
+          <option value="0.7500">Bradon — 0,7500</option>
+          <option value="0.5000">Brett — 0,5000</option>
+          <option value="0.9167">Brian — 0,9167</option>
+          <option value="0.1111">Cody — 0,1111</option>
+          <option value="0.9444">Colin — 0,9444</option>
+          <option value="0.0278">Connor — 0,0278</option>
+          <option value="0.8333">Daniel — 0,8333</option>
+          <option value="0.4167">Dylan — 0,4167</option>
+          <option value="0.3889">Garrett — 0,3889</option>
+          <option value="0.5556">Harley — 0,5556</option>
+          <option value="0.1944">Jack — 0,1944</option>
+          <option value="0.3611">Jacob — 0,3611</option>
+          <option value="0.9722">Jan — 0,9722</option>
+          <option value="0.8056">Jeff — 0,8056</option>
+          <option value="0.6667">Jeffrey — 0,6667</option>
+          <option value="0.0000">Joe — 0,0000</option>
+          <option value="0.8889">Kevin — 0,8889</option>
+          <option value="0.5833">Kyle — 0,5833</option>
+          <option value="0.1389">Levi — 0,1389</option>
+          <option value="0.2500">Logan — 0,2500</option>
+          <option value="0.1667">Luke — 0,1667</option>
+          <option value="0.7222">Marty — 0,7222</option>
+          <option value="0.4444">Maxwell — 0,4444</option>
+          <option value="0.6389">Ryan — 0,6389</option>
+          <option value="0.2222">Scott — 0,2222</option>
+          <option value="0.6944">Sett — 0,6944</option>
+          <option value="0.4722">Steve — 0,4722</option>
+          <option value="0.0556">Tanner — 0,0556</option>
+          <option value="0.8611">Trent — 0,8611</option>
+          <option value="0.0833">Wyatt — 0,0833</option>
+          <option value="0.7778">Zach — 0,7778</option>
+        </select>
+      </div>
+    </div>
+
+
+    <div id="errorMsg" class="error-msg">⚠ Preencha todos os campos corretamente.</div>
+
+    <button class="btn-calc" onclick="calculate()">✦ LOCALIZAR SHIMMER ✦</button>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <button class="npc-btn" onclick="document.getElementById('npcModal').classList.add('show')">📋 Ver todos os nomes do Guia e valores</button>
+      <button class="info-toggle" id="infoToggle" onclick="toggleInfo()">
+        Como funciona? <span class="arrow">▾</span>
+      </button>
+    </div>
+
+    <div class="info-box" id="infoBox">
+      <div class="info-inner">
+        O Shimmer (Aether) é um líquido especial que aparece no canto oposto ao Dungeon. Sua posição X é determinada pela <strong>semente do mundo</strong>.<br><br>
+        O nome do <strong>Guia (Guide)</strong> revela o valor fracionário da semente. Multiplicando esse valor pelo tamanho do mundo em blocos, encontramos o ponto central do Shimmer no eixo X.<br><br>
+        <strong>Fórmula:</strong> <code style="color:var(--shimmer2)">X_shimmer = valor_Guia × largura_mundo</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Card -->
+  <div class="card result-card" id="resultCard">
+    <div class="card-title">⬡ Posição do Shimmer</div>
+
+    <div class="result-main">
+      <div class="result-coord">
+        <span class="coord-label">Coordenada X</span>
+        <span class="coord-value" id="resX">—</span>
+      </div>
+      <div class="result-arrow">⟶</div>
+      <div class="result-coord" style="align-items:flex-end;">
+        <span class="coord-label">Profundidade</span>
+        <span class="coord-value" style="font-size:1.8rem; color:var(--muted);">Caverna</span>
+      </div>
+    </div>
+
+    <div class="position-bar">
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill" style="width:0%">
+          <div class="bar-marker"></div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <span>← Oeste</span>
+        <span>Centro</span>
+        <span>Leste →</span>
+      </div>
+    </div>
+
+    <div class="result-meta" style="margin-top:24px;" id="resultMeta"></div>
+  </div>
+
+  <!-- NPC Modal -->
+  <div class="modal-overlay" id="npcModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Nomes do Guia e Valores</span>
+        <button class="modal-close" onclick="document.getElementById('npcModal').classList.remove('show')">✕</button>
+      </div>
+      <div class="npc-grid" id="npcGrid"></div>
+    </div>
+  </div>
+
+  <footer>Shimmer Locator · Terraria 1.4.4+ · Não afiliado à Re-Logic</footer>
+</div>
+
+<script>
+const NPCS = [
+  { name: "Andrew", val: 0.5278 }, { name: "Asher", val: 0.3056 },
+  { name: "Bradley", val: 0.3333 }, { name: "Bradon", val: 0.7500 },
+  { name: "Brett", val: 0.5000 }, { name: "Brian", val: 0.9167 },
+  { name: "Cody", val: 0.1111 }, { name: "Colin", val: 0.9444 },
+  { name: "Connor", val: 0.0278 }, { name: "Daniel", val: 0.8333 },
+  { name: "Dylan", val: 0.4167 }, { name: "Garrett", val: 0.3889 },
+  { name: "Harley", val: 0.5556 }, { name: "Jack", val: 0.1944 },
+  { name: "Jacob", val: 0.3611 }, { name: "Jan", val: 0.9722 },
+  { name: "Jeff", val: 0.8056 }, { name: "Jeffrey", val: 0.6667 },
+  { name: "Joe", val: 0.0000 }, { name: "Kevin", val: 0.8889 },
+  { name: "Kyle", val: 0.5833 }, { name: "Levi", val: 0.1389 },
+  { name: "Logan", val: 0.2500 }, { name: "Luke", val: 0.1667 },
+  { name: "Marty", val: 0.7222 }, { name: "Maxwell", val: 0.4444 },
+  { name: "Ryan", val: 0.6389 }, { name: "Scott", val: 0.2222 },
+  { name: "Sett", val: 0.6944 }, { name: "Steve", val: 0.4722 },
+  { name: "Tanner", val: 0.0556 }, { name: "Trent", val: 0.8611 },
+  { name: "Wyatt", val: 0.0833 }, { name: "Zach", val: 0.7778 }
+];
+
+let worldSize = 6400;
+let jungleSide = null;
+
+function selectConfig(btn, size, side) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  worldSize = size;
+  jungleSide = side;
+}
+
+// Build NPC modal grid
+const grid = document.getElementById('npcGrid');
+NPCS.forEach(n => {
+  const div = document.createElement('div');
+  div.className = 'npc-item';
+  div.innerHTML = `<span class="npc-name">${n.name}</span><span class="npc-val">${n.val.toFixed(4)}</span>`;
+  grid.appendChild(div);
+});
+
+// Particles
+const pc = document.getElementById('particles');
+const colors = ['#b06efc','#58d8ff','#f77fff','#ffffff'];
+for (let i = 0; i < 28; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    background:${colors[Math.floor(Math.random()*colors.length)]};
+    animation-duration:${8 + Math.random()*12}s;
+    animation-delay:-${Math.random()*20}s;
+  `;
+  pc.appendChild(p);
+}
+
+function toggleInfo() {
+  const box = document.getElementById('infoBox');
+  const btn = document.getElementById('infoToggle');
+  box.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+function calculate() {
+  const npcVal = parseFloat(document.getElementById('npcSelect').value);
+  const err    = document.getElementById('errorMsg');
+
+  if (isNaN(npcVal) || !jungleSide) {
+    err.classList.add('show');
+    err.textContent = isNaN(npcVal) ? '⚠ Selecione o nome do Guia.' : '⚠ Informe o lado da Selva.';
+    return;
+  }
+  err.classList.remove('show');
+
+  const formulas = {
+    4200: { left: (x) => (3800 - 3276) * x - 3800, right: (x) => 3276 + ((3800 - 3276) * x) },
+    6400: { left: (x) => (6000 - 4992) * x - 6000, right: (x) => 4992 + ((6000 - 4992) * x) },
+    8400: { left: (x) => (8000 - 6552) * x - 8000, right: (x) => 6552 + ((8000 - 6552) * x) },
+  };
+
+  const shimmerXAbs = Math.round(formulas[worldSize][jungleSide](npcVal));
+  const pct         = (Math.abs(shimmerXAbs) / worldSize) * 100;
+  const shimmerX    = shimmerXAbs;
+
+  // Shimmer fica no lado oposto à Selva
+  const shimmerSide = jungleSide === 'left' ? '🌄 Lado Leste (Direita)' : '🌅 Lado Oeste (Esquerda)';
+  const npcName = document.getElementById('npcSelect').options[document.getElementById('npcSelect').selectedIndex].text.split(' —')[0];
+  const distCenter = Math.abs(shimmerX);
+  document.getElementById('resX').textContent = shimmerX;
+  document.getElementById('barFill').style.width = pct + '%';
+
+  document.getElementById('resultMeta').innerHTML = `
+    <div class="meta-chip"><span class="label">Guia</span><span class="value">${npcName}</span></div>
+    <div class="meta-chip"><span class="label">Tamanho do Mundo</span><span class="value">${worldSize} blocos</span></div>
+    <div class="meta-chip"><span class="label">Selva fica em</span><span class="value">${jungleSide === 'left' ? '🌿 Esquerda (Oeste)' : '🌿 Direita (Leste)'}</span></div>
+    <div class="meta-chip"><span class="label">Shimmer fica em</span><span class="value">${shimmerSide}</span></div>
+    <div class="meta-chip"><span class="label">Dist. do Centro</span><span class="value">${distCenter} blocos</span></div>
+    <div class="meta-chip"><span class="label">Porcentagem do Mapa</span><span class="value">${pct.toFixed(1)}%</span></div>
+  `;
+
+  const card = document.getElementById('resultCard');
+  card.classList.add('show');
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>
